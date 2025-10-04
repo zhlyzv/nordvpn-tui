@@ -168,6 +168,15 @@ impl App {
                     self.filter.pop();
                     self.update_filter();
                 }
+                KeyCode::Up | KeyCode::Down => {
+                    // Allow navigation while filtering
+                    self.filter_mode = false;
+                    if key.code == KeyCode::Up {
+                        self.move_up();
+                    } else {
+                        self.move_down();
+                    }
+                }
                 _ => {}
             }
         } else {
@@ -177,10 +186,20 @@ impl App {
                 (_, KeyCode::Up | KeyCode::Char('k')) => self.move_up(),
                 (_, KeyCode::Down | KeyCode::Char('j')) => self.move_down(),
                 (_, KeyCode::Enter) => self.connect_selected(),
-                (_, KeyCode::Char('d')) => self.disconnect(),
-                (_, KeyCode::Char('r')) => self.refresh_status(),
+                (KeyModifiers::CONTROL, KeyCode::Char('d') | KeyCode::Char('D')) => {
+                    self.disconnect()
+                }
+                (KeyModifiers::CONTROL, KeyCode::Char('r') | KeyCode::Char('R')) => {
+                    self.refresh_status()
+                }
                 (_, KeyCode::Char('/')) => {
                     self.filter_mode = true;
+                }
+                (KeyModifiers::NONE, KeyCode::Char(c)) if c.is_alphanumeric() => {
+                    // Start filtering on any alphanumeric character
+                    self.filter_mode = true;
+                    self.filter.push(c);
+                    self.update_filter();
                 }
                 _ => {}
             }

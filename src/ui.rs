@@ -53,9 +53,9 @@ fn render_filter(app: &App, frame: &mut Frame, area: Rect) {
     let filter_text = if app.filter_mode {
         format!("/{}_", app.filter)
     } else if app.filter.is_empty() {
-        "Press '/' to filter countries".to_string()
+        "Type to filter countries".to_string()
     } else {
-        format!("Filter: {} (Press '/' to edit)", app.filter)
+        format!("Filter: {}", app.filter)
     };
 
     let filter_style = if app.filter_mode {
@@ -120,10 +120,10 @@ fn render_help(app: &App, frame: &mut Frame, area: Rect) {
             Span::styled(success, Style::default().fg(Color::Green)),
         ])
     } else if app.filter_mode {
-        Line::from("Type to filter | Enter/Esc: Exit filter mode")
+        Line::from("Type to filter | ↑/↓: Navigate | Enter/Esc: Exit filter mode")
     } else {
         Line::from(
-            "↑/↓/j/k: Navigate | Enter: Connect | d: Disconnect | r: Refresh | /: Filter | q/Esc: Quit",
+            "Type/↑/↓/j/k: Filter/Navigate | Enter: Connect | Ctrl+D: Disconnect | Ctrl+R: Refresh | q/Esc: Quit",
         )
     };
 
