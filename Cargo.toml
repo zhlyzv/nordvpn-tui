@@ -1,0 +1,12 @@
+[package]
+name = "nordvpn-tui"
+version = "0.1.0"
+description = "A thin wrapper around the nordvpn cli to manage connectivity"
+authors = ["Alexander Zhelyazov <git@zhlyzv.xyz>"]
+license = "MIT"
+edition = "2024"
+
+[dependencies]
+crossterm = "0.28.1"
+ratatui = "0.29.0"
+color-eyre = "0.6.3"
