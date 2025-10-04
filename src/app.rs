@@ -23,6 +23,8 @@ pub struct App {
     pub success_message: Option<String>,
     /// Whether we're in filter mode
     pub filter_mode: bool,
+    /// Scroll state for the country list
+    pub scroll_state: ratatui::widgets::ScrollbarState,
 }
 
 impl App {
@@ -32,6 +34,9 @@ impl App {
         let status = NordVPN::get_status().unwrap_or(ConnectionStatus::Disconnected);
 
         let filtered_countries = countries.clone();
+
+        let scroll_state =
+            ratatui::widgets::ScrollbarState::new(filtered_countries.len()).position(0);
 
         Ok(Self {
             running: true,
@@ -43,6 +48,7 @@ impl App {
             error_message: None,
             success_message: None,
             filter_mode: false,
+            scroll_state,
         })
     }
 
@@ -75,6 +81,11 @@ impl App {
         {
             self.selected_index = self.filtered_countries.len() - 1;
         }
+
+        // Update scrollbar state
+        self.scroll_state = self
+            .scroll_state
+            .content_length(self.filtered_countries.len());
     }
 
     /// Refresh the connection status
@@ -125,6 +136,7 @@ impl App {
     fn move_up(&mut self) {
         if self.selected_index > 0 {
             self.selected_index -= 1;
+            self.scroll_state = self.scroll_state.position(self.selected_index);
         }
     }
 
@@ -132,6 +144,7 @@ impl App {
     fn move_down(&mut self) {
         if self.selected_index + 1 < self.filtered_countries.len() {
             self.selected_index += 1;
+            self.scroll_state = self.scroll_state.position(self.selected_index);
         }
     }
 

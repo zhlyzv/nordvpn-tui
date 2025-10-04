@@ -4,7 +4,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    widgets::{Block, Borders, List, ListItem, Paragraph, Scrollbar, ScrollbarOrientation},
 };
 
 pub fn render(app: &mut App, frame: &mut Frame) {
@@ -73,7 +73,7 @@ fn render_filter(app: &App, frame: &mut Frame, area: Rect) {
     frame.render_widget(filter_widget, area);
 }
 
-fn render_country_list(app: &App, frame: &mut Frame, area: Rect) {
+fn render_country_list(app: &mut App, frame: &mut Frame, area: Rect) {
     let items: Vec<ListItem> = app
         .filtered_countries
         .iter()
@@ -106,6 +106,20 @@ fn render_country_list(app: &App, frame: &mut Frame, area: Rect) {
     let list = List::new(items).block(Block::default().borders(Borders::ALL).title(title));
 
     frame.render_widget(list, area);
+
+    // Render scrollbar
+    let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
+        .begin_symbol(Some("↑"))
+        .end_symbol(Some("↓"));
+
+    frame.render_stateful_widget(
+        scrollbar,
+        area.inner(ratatui::layout::Margin {
+            vertical: 1,
+            horizontal: 0,
+        }),
+        &mut app.scroll_state,
+    );
 }
 
 fn render_help(app: &App, frame: &mut Frame, area: Rect) {
