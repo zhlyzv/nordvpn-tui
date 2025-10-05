@@ -3,12 +3,30 @@ use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
-    symbols::border,
+    symbols::{border, scrollbar},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, Paragraph, Scrollbar, ScrollbarOrientation},
+    widgets::{
+        Block, BorderType, Borders, List, ListItem, Paragraph, Scrollbar, ScrollbarOrientation,
+    },
 };
 
 pub fn render(app: &mut App, frame: &mut Frame) {
+    // Outer wrapper block
+    let outer_block = Block::default()
+        .title(Span::styled(
+            " NordVPN ",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ))
+        .borders(Borders::ALL)
+        .border_set(border::ROUNDED)
+        .border_type(BorderType::QuadrantInside)
+        .border_style(Style::default().fg(Color::LightCyan));
+
+    let inner_area = outer_block.inner(frame.area());
+    frame.render_widget(outer_block, frame.area());
+
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -17,7 +35,7 @@ pub fn render(app: &mut App, frame: &mut Frame) {
             Constraint::Min(0),    // Country list
             Constraint::Length(3), // Help/message bar
         ])
-        .split(frame.area());
+        .split(inner_area);
 
     render_status(app, frame, chunks[0]);
     render_filter(app, frame, chunks[1]);
@@ -46,7 +64,7 @@ fn render_status(app: &App, frame: &mut Frame, area: Rect) {
 
     let block = Block::default()
         .borders(Borders::ALL)
-        .border_set(border::PLAIN)
+        .border_type(BorderType::Thick)
         .border_style(Style::default().fg(status_color))
         .title(Span::styled(
             " Status ",
@@ -164,15 +182,16 @@ fn render_country_list(app: &mut App, frame: &mut Frame, area: Rect) {
 
     // Render scrollbar
     let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
-        .begin_symbol(Some("↑"))
-        .end_symbol(Some("↓"))
+        .symbols(scrollbar::VERTICAL)
+        // .begin_symbol(Some("↑"))
+        // .end_symbol(Some("↓"))
         .style(Style::default().fg(Color::Cyan));
 
     frame.render_stateful_widget(
         scrollbar,
         area.inner(ratatui::layout::Margin {
-            vertical: 1,
-            horizontal: 0,
+            vertical: 2,
+            horizontal: 2,
         }),
         &mut app.scroll_state,
     );
@@ -208,15 +227,15 @@ fn render_help(app: &App, frame: &mut Frame, area: Rect) {
         ])
     } else {
         Line::from(vec![
-            Span::styled("Type/↑/↓/j/k", Style::default().fg(Color::Cyan)),
-            Span::raw(": Filter/Navigate | "),
+            Span::styled("↑/↓/j/k", Style::default().fg(Color::Cyan)),
+            Span::raw(": Navigate | "),
             Span::styled("Enter", Style::default().fg(Color::Green)),
             Span::raw(": Connect | "),
             Span::styled("Ctrl+D", Style::default().fg(Color::Red)),
             Span::raw(": Disconnect | "),
             Span::styled("Ctrl+R", Style::default().fg(Color::Yellow)),
             Span::raw(": Refresh | "),
-            Span::styled("q/Esc", Style::default().fg(Color::Magenta)),
+            Span::styled("Esc/q", Style::default().fg(Color::Magenta)),
             Span::raw(": Quit"),
         ])
     };
