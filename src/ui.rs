@@ -45,21 +45,33 @@ pub fn render(app: &mut App, frame: &mut Frame) {
 
 fn render_status(app: &App, frame: &mut Frame, area: Rect) {
     let status_text = app.status.to_string();
-    let (status_color, status_symbol) = match &app.status {
-        crate::types::ConnectionStatus::Connected { .. } => (Color::Green, "●"),
-        crate::types::ConnectionStatus::Disconnected => (Color::Red, "●"),
-        crate::types::ConnectionStatus::Connecting => (Color::Yellow, "◐"),
+    let (status_color, status_symbol, text_style) = match &app.status {
+        crate::types::ConnectionStatus::Connected { .. } => (
+            Color::Green,
+            "●",
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
+        ),
+        crate::types::ConnectionStatus::Disconnected => (
+            Color::Red,
+            "●",
+            Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+        ),
+        crate::types::ConnectionStatus::Connecting => (
+            Color::Yellow,
+            "◐",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD)
+                .add_modifier(Modifier::SLOW_BLINK),
+        ),
     };
 
     let status_line = Line::from(vec![
         Span::styled(status_symbol, Style::default().fg(status_color)),
         Span::raw(" "),
-        Span::styled(
-            status_text,
-            Style::default()
-                .fg(status_color)
-                .add_modifier(Modifier::BOLD),
-        ),
+        Span::styled(status_text, text_style),
     ]);
 
     let block = Block::default()

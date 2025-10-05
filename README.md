@@ -2,6 +2,8 @@
 
 A terminal user interface for managing NordVPN connections. Requires the NordVPN CLI to be installed and running.
 
+![Screenshot](./screenshot.png)
+
 ## Prerequisites
 
 - NordVPN CLI installed and configured ([nordvpn.com/download/linux](https://nordvpn.com/download/linux/))
