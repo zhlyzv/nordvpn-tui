@@ -53,7 +53,7 @@ sudo rm /usr/local/bin/nordvpn-tui
 
 ## Usage
 
-Run `nordvpn-tui` and use the following keybindings:
+Run `nordvpn-tui`
 
 ## Troubleshooting
 
