@@ -98,7 +98,10 @@ impl App {
     /// Refresh the connection status
     pub fn refresh_status(&mut self) {
         match NordVPN::get_status() {
-            Ok(status) => self.status = status,
+            Ok(status) => {
+                self.status = status;
+                self.success_message = Some("Status refreshed".to_string());
+            }
             Err(e) => self.error_message = Some(format!("Failed to get status: {}", e)),
         }
     }
