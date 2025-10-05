@@ -13,13 +13,13 @@ A terminal user interface for managing NordVPN connections. Requires the NordVPN
 ### Install with Cargo
 
 ```bash
-cargo install --git https://github.com/yourusername/nordvpn-tui.git
+cargo install --git https://github.com/zhlyzv/nordvpn-tui.git
 ```
 
 ### Build from Source
 
 ```bash
-git clone https://github.com/yourusername/nordvpn-tui.git
+git clone https://github.com/zhlyzv/nordvpn-tui.git
 cd nordvpn-tui
 cargo build --release
 ```
