@@ -3,6 +3,7 @@ use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
+    symbols::border,
     text::{Line, Span},
     widgets::{Block, Borders, List, ListItem, Paragraph, Scrollbar, ScrollbarOrientation},
 };
@@ -43,8 +44,18 @@ fn render_status(app: &App, frame: &mut Frame, area: Rect) {
         ),
     ]);
 
-    let status_widget =
-        Paragraph::new(status_line).block(Block::default().borders(Borders::ALL).title(" Status "));
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_set(border::PLAIN)
+        .border_style(Style::default().fg(status_color))
+        .title(Span::styled(
+            " Status ",
+            Style::default()
+                .fg(Color::White)
+                .add_modifier(Modifier::BOLD),
+        ));
+
+    let status_widget = Paragraph::new(status_line).block(block);
 
     frame.render_widget(status_widget, area);
 }
@@ -58,29 +69,58 @@ fn render_filter(app: &App, frame: &mut Frame, area: Rect) {
         format!("Filter: {}", app.filter)
     };
 
-    let filter_style = if app.filter_mode {
-        Style::default()
-            .fg(Color::Yellow)
-            .add_modifier(Modifier::BOLD)
+    let (text_style, border_color) = if app.filter_mode {
+        (
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+            Color::Yellow,
+        )
+    } else if !app.filter.is_empty() {
+        (Style::default().fg(Color::Cyan), Color::Cyan)
     } else {
-        Style::default()
+        (Style::default().fg(Color::DarkGray), Color::DarkGray)
     };
 
-    let filter_widget = Paragraph::new(filter_text)
-        .style(filter_style)
-        .block(Block::default().borders(Borders::ALL).title(" Filter "));
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_set(border::PLAIN)
+        .border_style(Style::default().fg(border_color))
+        .title(Span::styled(
+            " Filter ",
+            Style::default()
+                .fg(Color::White)
+                .add_modifier(Modifier::BOLD),
+        ));
+
+    let filter_widget = Paragraph::new(filter_text).style(text_style).block(block);
 
     frame.render_widget(filter_widget, area);
 }
 
 fn render_country_list(app: &mut App, frame: &mut Frame, area: Rect) {
+    // Get connected country name if any
+    let connected_country = match &app.status {
+        crate::types::ConnectionStatus::Connected { country, .. } => Some(country.to_lowercase()),
+        _ => None,
+    };
+
     let items: Vec<ListItem> = app
         .filtered_countries
         .iter()
         .enumerate()
         .map(|(i, country)| {
-            let content = if i == app.selected_index {
+            let is_connected = connected_country
+                .as_ref()
+                .map(|c| country.display_name.to_lowercase() == *c)
+                .unwrap_or(false);
+
+            let content = if i == app.selected_index && is_connected {
+                format!("▶ {} ●", country.display_name)
+            } else if i == app.selected_index {
                 format!("▶ {}", country.display_name)
+            } else if is_connected {
+                format!("  {} ●", country.display_name)
             } else {
                 format!("  {}", country.display_name)
             };
@@ -89,28 +129,44 @@ fn render_country_list(app: &mut App, frame: &mut Frame, area: Rect) {
                 Style::default()
                     .fg(Color::Cyan)
                     .add_modifier(Modifier::BOLD)
-            } else {
+            } else if is_connected {
                 Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::Gray)
             };
 
             ListItem::new(content).style(style)
         })
         .collect();
 
-    let title = if app.filtered_countries.is_empty() {
-        " Countries (No matches) "
+    let (title, border_color) = if app.filtered_countries.is_empty() {
+        (" Countries (No matches) ", Color::Red)
     } else {
-        " Countries "
+        (" Countries ", Color::Blue)
     };
 
-    let list = List::new(items).block(Block::default().borders(Borders::ALL).title(title));
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_set(border::PLAIN)
+        .border_style(Style::default().fg(border_color))
+        .title(Span::styled(
+            title,
+            Style::default()
+                .fg(Color::White)
+                .add_modifier(Modifier::BOLD),
+        ));
+
+    let list = List::new(items).block(block);
 
     frame.render_widget(list, area);
 
     // Render scrollbar
     let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
         .begin_symbol(Some("↑"))
-        .end_symbol(Some("↓"));
+        .end_symbol(Some("↓"))
+        .style(Style::default().fg(Color::Cyan));
 
     frame.render_stateful_widget(
         scrollbar,
@@ -125,23 +181,58 @@ fn render_country_list(app: &mut App, frame: &mut Frame, area: Rect) {
 fn render_help(app: &App, frame: &mut Frame, area: Rect) {
     let help_text = if let Some(error) = &app.error_message {
         Line::from(vec![
-            Span::styled("✗ ", Style::default().fg(Color::Red)),
+            Span::styled(
+                "✗ ",
+                Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+            ),
             Span::styled(error, Style::default().fg(Color::Red)),
         ])
     } else if let Some(success) = &app.success_message {
         Line::from(vec![
-            Span::styled("✓ ", Style::default().fg(Color::Green)),
+            Span::styled(
+                "✓ ",
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled(success, Style::default().fg(Color::Green)),
         ])
     } else if app.filter_mode {
-        Line::from("Type to filter | ↑/↓: Navigate | Enter/Esc: Exit filter mode")
+        Line::from(vec![
+            Span::styled("Type", Style::default().fg(Color::Yellow)),
+            Span::raw(" to filter | "),
+            Span::styled("↑/↓", Style::default().fg(Color::Cyan)),
+            Span::raw(": Navigate | "),
+            Span::styled("Enter/Esc", Style::default().fg(Color::Magenta)),
+            Span::raw(": Exit filter mode"),
+        ])
     } else {
-        Line::from(
-            "Type/↑/↓/j/k: Filter/Navigate | Enter: Connect | Ctrl+D: Disconnect | Ctrl+R: Refresh | q/Esc: Quit",
-        )
+        Line::from(vec![
+            Span::styled("Type/↑/↓/j/k", Style::default().fg(Color::Cyan)),
+            Span::raw(": Filter/Navigate | "),
+            Span::styled("Enter", Style::default().fg(Color::Green)),
+            Span::raw(": Connect | "),
+            Span::styled("Ctrl+D", Style::default().fg(Color::Red)),
+            Span::raw(": Disconnect | "),
+            Span::styled("Ctrl+R", Style::default().fg(Color::Yellow)),
+            Span::raw(": Refresh | "),
+            Span::styled("q/Esc", Style::default().fg(Color::Magenta)),
+            Span::raw(": Quit"),
+        ])
     };
 
-    let help_widget = Paragraph::new(help_text).block(Block::default().borders(Borders::ALL));
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_set(border::PLAIN)
+        .border_style(Style::default().fg(Color::DarkGray))
+        .title(Span::styled(
+            " Help ",
+            Style::default()
+                .fg(Color::White)
+                .add_modifier(Modifier::BOLD),
+        ));
+
+    let help_widget = Paragraph::new(help_text).block(block);
 
     frame.render_widget(help_widget, area);
 }

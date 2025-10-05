@@ -214,6 +214,14 @@ impl App {
                     self.filter.push(c);
                     self.update_filter();
                 }
+                (KeyModifiers::NONE, KeyCode::Backspace) => {
+                    // Backspace in normal mode enters filter mode and deletes
+                    if !self.filter.is_empty() {
+                        self.filter_mode = true;
+                        self.filter.pop();
+                        self.update_filter();
+                    }
+                }
                 _ => {}
             }
         }
