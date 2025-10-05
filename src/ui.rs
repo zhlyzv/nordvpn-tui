@@ -127,27 +127,19 @@ fn render_country_list(app: &mut App, frame: &mut Frame, area: Rect) {
         .filtered_countries
         .iter()
         .enumerate()
-        .map(|(i, country)| {
+        .map(|(_i, country)| {
             let is_connected = connected_country
                 .as_ref()
                 .map(|c| country.display_name.to_lowercase() == *c)
                 .unwrap_or(false);
 
-            let content = if i == app.selected_index && is_connected {
-                format!("▶ {} ●", country.display_name)
-            } else if i == app.selected_index {
-                format!("▶ {}", country.display_name)
-            } else if is_connected {
-                format!("  {} ●", country.display_name)
+            let content = if is_connected {
+                format!("{} ●", country.display_name)
             } else {
-                format!("  {}", country.display_name)
+                country.display_name.clone()
             };
 
-            let style = if i == app.selected_index {
-                Style::default()
-                    .fg(Color::Cyan)
-                    .add_modifier(Modifier::BOLD)
-            } else if is_connected {
+            let style = if is_connected {
                 Style::default()
                     .fg(Color::Green)
                     .add_modifier(Modifier::BOLD)
@@ -176,15 +168,20 @@ fn render_country_list(app: &mut App, frame: &mut Frame, area: Rect) {
                 .add_modifier(Modifier::BOLD),
         ));
 
-    let list = List::new(items).block(block);
+    let list = List::new(items)
+        .block(block)
+        .highlight_style(
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )
+        .highlight_symbol("▶ ");
 
-    frame.render_widget(list, area);
+    frame.render_stateful_widget(list, area, &mut app.list_state);
 
     // Render scrollbar
     let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
         .symbols(scrollbar::VERTICAL)
-        // .begin_symbol(Some("↑"))
-        // .end_symbol(Some("↓"))
         .style(Style::default().fg(Color::Cyan));
 
     frame.render_stateful_widget(
@@ -228,15 +225,15 @@ fn render_help(app: &App, frame: &mut Frame, area: Rect) {
     } else {
         Line::from(vec![
             Span::styled("↑/↓/j/k", Style::default().fg(Color::Cyan)),
-            Span::raw(": Navigate | "),
+            Span::raw(": navigate | "),
             Span::styled("Enter", Style::default().fg(Color::Green)),
-            Span::raw(": Connect | "),
+            Span::raw(": connect | "),
             Span::styled("Ctrl+D", Style::default().fg(Color::Red)),
-            Span::raw(": Disconnect | "),
+            Span::raw(": disconnect | "),
             Span::styled("Ctrl+R", Style::default().fg(Color::Yellow)),
-            Span::raw(": Refresh | "),
+            Span::raw(": refresh | "),
             Span::styled("Esc/q", Style::default().fg(Color::Magenta)),
-            Span::raw(": Quit"),
+            Span::raw(": quit"),
         ])
     };
 

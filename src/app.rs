@@ -25,6 +25,8 @@ pub struct App {
     pub filter_mode: bool,
     /// Scroll state for the country list
     pub scroll_state: ratatui::widgets::ScrollbarState,
+    /// List state for scrolling
+    pub list_state: ratatui::widgets::ListState,
 }
 
 impl App {
@@ -38,6 +40,9 @@ impl App {
         let scroll_state =
             ratatui::widgets::ScrollbarState::new(filtered_countries.len()).position(0);
 
+        let mut list_state = ratatui::widgets::ListState::default();
+        list_state.select(Some(0));
+
         Ok(Self {
             running: true,
             countries,
@@ -49,6 +54,7 @@ impl App {
             success_message: None,
             filter_mode: false,
             scroll_state,
+            list_state,
         })
     }
 
@@ -86,6 +92,7 @@ impl App {
         self.scroll_state = self
             .scroll_state
             .content_length(self.filtered_countries.len());
+        self.list_state.select(Some(self.selected_index));
     }
 
     /// Refresh the connection status
@@ -137,6 +144,7 @@ impl App {
         if self.selected_index > 0 {
             self.selected_index -= 1;
             self.scroll_state = self.scroll_state.position(self.selected_index);
+            self.list_state.select(Some(self.selected_index));
         }
     }
 
@@ -145,6 +153,7 @@ impl App {
         if self.selected_index + 1 < self.filtered_countries.len() {
             self.selected_index += 1;
             self.scroll_state = self.scroll_state.position(self.selected_index);
+            self.list_state.select(Some(self.selected_index));
         }
     }
 
