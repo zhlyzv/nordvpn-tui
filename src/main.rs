@@ -25,7 +25,6 @@ fn main() -> Result<()> {
     };
 
     let terminal = ratatui::init();
-    let app = App::new()?;
     let result = app.run(terminal);
     ratatui::restore();
     result
