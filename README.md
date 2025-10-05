@@ -40,7 +40,7 @@ sudo chmod +x /usr/local/bin/nordvpn-tui
 Or install with cargo:
 
 ```bash
-cargo install --path .
+cargo install --locked --path .
 ```
 
 ### Uninstall
